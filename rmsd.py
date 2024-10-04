@@ -4,6 +4,7 @@ import sys
 
 import numpy as np
 from Bio import PDB
+from Bio.PDB import Superimposer
 
 
 def extract_phosphorus_atoms(structure):
@@ -28,6 +29,12 @@ def calculate_rmsd(structure1_str, structure2_str):
     if len(atoms1) != len(atoms2):
         raise ValueError("Phosphorus atoms count mismatch")
 
+    # Superimpose the structures
+    sup = Superimposer()
+    sup.set_atoms(atoms1, atoms2)
+    sup.apply(atoms2)
+
+    # Calculate RMSD after superimposition
     coords1 = np.array([atom.get_coord() for atom in atoms1])
     coords2 = np.array([atom.get_coord() for atom in atoms2])
 
