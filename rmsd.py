@@ -36,12 +36,9 @@ def calculate_rmsd(structure1_str, structure2_str):
 
 
 def main(pdb_file1, pdb_file2):
-    try:
-        with open(pdb_file1) as f:
-            with open(pdb_file2) as g:
-                print(calculate_rmsd(f.read(), g.read()))
-    except Exception as e:
-        raise RuntimeError(f"Nie można obliczyć RMSD: {str(e)}")
+    with open(pdb_file1) as f:
+        with open(pdb_file2) as g:
+            print(calculate_rmsd(f.read(), g.read()))
 
 
 if __name__ == "__main__":
@@ -49,7 +46,4 @@ if __name__ == "__main__":
         print("Usage: python rmsd.py <pdb1> <pdb2>")
         sys.exit(1)
 
-    pdb_file1 = sys.argv[1]
-    pdb_file2 = sys.argv[2]
-
-    main(pdb_file1, pdb_file2)
+    main(sys.argv[1], sys.argv[2])
