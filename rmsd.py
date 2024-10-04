@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import sys
+import io
 
 import numpy as np
 from Bio import PDB
@@ -18,8 +19,10 @@ def extract_phosphorus_atoms(structure):
 
 def calculate_rmsd(structure1_str, structure2_str):
     parser = PDB.PDBParser(QUIET=True)
-    structure1 = parser.get_structure("structure1", structure1_str)
-    structure2 = parser.get_structure("structure2", structure2_str)
+    structure1_handle = io.StringIO(structure1_str)
+    structure2_handle = io.StringIO(structure2_str)
+    structure1 = parser.get_structure("structure1", structure1_handle)
+    structure2 = parser.get_structure("structure2", structure2_handle)
 
     atoms1 = extract_phosphorus_atoms(structure1)
     atoms2 = extract_phosphorus_atoms(structure2)
