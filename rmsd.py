@@ -4,26 +4,24 @@ import numpy as np
 from Bio import PDB
 
 
+def extract_phosphorus_atoms(structure):
+    atoms = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                for atom in residue:
+                    if atom.get_name() == "P":  # Tylko atomy fosforu
+                        atoms.append(atom)
+    return atoms
+
+
 def calculate_rmsd(structure1_str, structure2_str):
     parser = PDB.PDBParser(QUIET=True)
     structure1 = parser.get_structure("structure1", structure1_str)
     structure2 = parser.get_structure("structure2", structure2_str)
-    atoms1 = []
-    atoms2 = []
-
-    for model in structure1:
-        for chain in model:
-            for residue in chain:
-                for atom in residue:
-                    if atom.get_name() == "P":  # Tylko atomy fosforu
-                        atoms1.append(atom)
-
-    for model in structure2:
-        for chain in model:
-            for residue in chain:
-                for atom in residue:
-                    if atom.get_name() == "P":  # Tylko atomy fosforu
-                        atoms2.append(atom)
+    
+    atoms1 = extract_phosphorus_atoms(structure1)
+    atoms2 = extract_phosphorus_atoms(structure2)
 
     if len(atoms1) != len(atoms2):
         raise ValueError("Phosphorus atoms count mismatch")
