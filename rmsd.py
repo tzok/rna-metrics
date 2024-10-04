@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import sys
 
 import numpy as np
@@ -10,7 +11,7 @@ def extract_phosphorus_atoms(structure):
         for chain in model:
             for residue in chain:
                 for atom in residue:
-                    if atom.get_name() == "P":  # Tylko atomy fosforu
+                    if atom.get_name() == "P":
                         atoms.append(atom)
     return atoms
 
@@ -19,7 +20,7 @@ def calculate_rmsd(structure1_str, structure2_str):
     parser = PDB.PDBParser(QUIET=True)
     structure1 = parser.get_structure("structure1", structure1_str)
     structure2 = parser.get_structure("structure2", structure2_str)
-    
+
     atoms1 = extract_phosphorus_atoms(structure1)
     atoms2 = extract_phosphorus_atoms(structure2)
 
@@ -35,21 +36,17 @@ def calculate_rmsd(structure1_str, structure2_str):
 
 
 def main(pdb_file1, pdb_file2):
-    parser = PDB.PDBParser(QUIET=True)
-
     try:
-        structure1 = parser.get_structure("structure1", pdb_file1)
-        structure2 = parser.get_structure("structure2", pdb_file2)
-
-        rmsd = calculate_rmsd(structure1, structure2)
-        print(f"RMSD: {rmsd:.4f} Å")
+        with open(pdb_file1) as f:
+            with open(pdb_file2) as g:
+                print(calculate_rmsd(f.read(), g.read()))
     except Exception as e:
         raise RuntimeError(f"Nie można obliczyć RMSD: {str(e)}")
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Użycie: python script.py <plik_pdb1> <plik_pdb2>")
+        print("Usage: python rmsd.py <pdb1> <pdb2>")
         sys.exit(1)
 
     pdb_file1 = sys.argv[1]
