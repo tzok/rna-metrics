@@ -42,7 +42,7 @@ def calculate_lddt(reference_structure, model_structure):
 
     # Create a mask for interactions: atoms within 5A and not on the diagonal (self-interaction)
     interaction_mask = (ref_distances <= 5) & ~np.eye(len(ref_atoms), dtype=bool)
-    
+
     # Exclude interactions between atoms in the same residue
     for i, atom in enumerate(ref_atoms):
         # Create a boolean array: True if atoms are in different residues, False otherwise
