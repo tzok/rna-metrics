@@ -1,37 +1,51 @@
+#! /usr/bin/env python
+import sys
+
 import numpy as np
 from Bio.PDB import PDBParser
-from rmsd import extract_phosphorus_atoms
 
 
-def calculate_lddt(reference_structure, model_structure, cutoffs=[0.5, 1, 2, 4]):
+def extract_phosphorus_atoms(structure):
+    atoms = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                for atom in residue:
+                    if atom.get_name() == "P":
+                        atoms.append(atom)
+    return atoms
+
+
+def calculate_lddt(reference_structure, model_structure):
     """
     Calculate the local Distance Difference Test (lDDT) score.
 
     :param reference_structure: PDB structure of the reference
     :param model_structure: PDB structure of the model
-    :param cutoffs: Distance cutoffs for lDDT calculation (default: [0.5, 1, 2, 4])
     :return: lDDT score (0-1, where 1 is perfect agreement)
     """
-    ref_atoms = extract_phosphorus_atoms(reference_structure)
-    model_atoms = extract_phosphorus_atoms(model_structure)
+    ref_atoms = list(reference_structure.get_atoms())
+    model_atoms = list(model_structure.get_atoms())
 
     if len(ref_atoms) != len(model_atoms):
-        raise ValueError(
-            "Number of atoms in reference and model structures do not match"
-        )
+        raise ValueError("Number of atoms in reference and model structures do not match")
 
-    n_atoms = len(ref_atoms)
     ref_coords = np.array([atom.coord for atom in ref_atoms])
     model_coords = np.array([atom.coord for atom in model_atoms])
 
     ref_distances = np.linalg.norm(ref_coords[:, None] - ref_coords, axis=2)
     model_distances = np.linalg.norm(model_coords[:, None] - model_coords, axis=2)
 
+    interaction_mask = (ref_distances <= 5) & ~np.eye(len(ref_atoms), dtype=bool)
+    for i, atom in enumerate(ref_atoms):
+        interaction_mask[i] &= ~np.array([atom.parent.id == ref_atoms[j].parent.id for j in range(len(ref_atoms))])
+
+    thresholds = [0.5, 1, 2, 4]
     scores = []
-    for cutoff in cutoffs:
-        ref_contacts = ref_distances < cutoff
-        preserved_contacts = np.abs(ref_distances - model_distances) < 0.5
-        score = np.sum(ref_contacts & preserved_contacts) / np.sum(ref_contacts)
+
+    for threshold in thresholds:
+        preserved_interactions = np.abs(ref_distances - model_distances) < threshold
+        score = np.sum(preserved_interactions[interaction_mask]) / np.sum(interaction_mask)
         scores.append(score)
 
     return np.mean(scores)
@@ -47,8 +61,6 @@ def main(reference_pdb, model_pdb):
 
 
 if __name__ == "__main__":
-    import sys
-
     if len(sys.argv) != 3:
         print("Usage: python lddt.py <reference_pdb> <model_pdb>")
         sys.exit(1)
