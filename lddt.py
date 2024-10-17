@@ -28,7 +28,9 @@ def calculate_lddt(reference_structure, model_structure):
     model_atoms = list(model_structure.get_atoms())
 
     if len(ref_atoms) != len(model_atoms):
-        raise ValueError("Number of atoms in reference and model structures do not match")
+        raise ValueError(
+            "Number of atoms in reference and model structures do not match"
+        )
 
     ref_coords = np.array([atom.coord for atom in ref_atoms])
     model_coords = np.array([atom.coord for atom in model_atoms])
@@ -38,14 +40,18 @@ def calculate_lddt(reference_structure, model_structure):
 
     interaction_mask = (ref_distances <= 5) & ~np.eye(len(ref_atoms), dtype=bool)
     for i, atom in enumerate(ref_atoms):
-        interaction_mask[i] &= ~np.array([atom.parent.id == ref_atoms[j].parent.id for j in range(len(ref_atoms))])
+        interaction_mask[i] &= ~np.array(
+            [atom.parent.id == ref_atoms[j].parent.id for j in range(len(ref_atoms))]
+        )
 
     thresholds = [0.5, 1, 2, 4]
     scores = []
 
     for threshold in thresholds:
         preserved_interactions = np.abs(ref_distances - model_distances) < threshold
-        score = np.sum(preserved_interactions[interaction_mask]) / np.sum(interaction_mask)
+        score = np.sum(preserved_interactions[interaction_mask]) / np.sum(
+            interaction_mask
+        )
         scores.append(score)
 
     return np.mean(scores)
