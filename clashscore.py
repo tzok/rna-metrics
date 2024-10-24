@@ -51,7 +51,6 @@ def calculate_clashscore(pdb_file):
                 # Extract eventID from redirect URL if present
                 if "eventID=" in redirect_url:
                     event_id = redirect_url.split("eventID=")[1].split("&")[0]
-                response = session.get(redirect_url)
                 continue
 
         # Check for Continue button
@@ -60,27 +59,38 @@ def calculate_clashscore(pdb_file):
             form = continue_button.find_parent("form")
             if form:
                 event_id = form.find("input", {"name": "eventID"})["value"]
-                continue_data = {
-                    "MolProbSID": molprobsid,
-                    "cmd": "Continue >",
-                    "eventID": event_id,
-                }
+                break
+
+    continue_data = {
+        "MolProbSID": molprobsid,
+        "cmd": "Continue >",
+        "eventID": event_id,
+    }
     session.post(f"{base_url}/index.php", data=continue_data)
 
-    # Step 5: Wait and get the analysis link
+    # Step 5: Wait for the analysis link to appear and get its eventID
+    analyze_link = None
     while True:
         response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
         if response.status_code == 200:
-            break
+            soup = BeautifulSoup(response.text, "html.parser")
+            analyze_link = soup.find("a", string="Analyze geometry without all-atom contacts")
+            if analyze_link:
+                break
         time.sleep(1)
 
-    # Find and follow "Analyze geometry without all-atom contacts" link
-    soup = BeautifulSoup(response.text, "html.parser")
-    analyze_link = soup.find("a", string="Analyze geometry without all-atom contacts")
     if not analyze_link:
         return None
 
-    session.get(analyze_link["href"])
+    # Extract eventID from the analysis link
+    analysis_href = analyze_link["href"]
+    if "eventID=" in analysis_href:
+        event_id = analysis_href.split("eventID=")[1].split("&")[0]
+    else:
+        return None
+
+    # Follow the analysis link
+    session.get(analysis_href)
 
     # Step 6: Run the analysis
     file_name = Path(pdb_file).stem  # Remove .pdb extension
@@ -91,7 +101,7 @@ def calculate_clashscore(pdb_file):
         "chartNotJustOut": "1",
         "cmd": "Run programs to perform these analyses >",
         "doCharts": "1",
-        "eventID": "61",
+        "eventID": event_id,
         "kinBaseP": "1",
         "kinGeom": "1",
         "kinSuite": "1",
