@@ -81,9 +81,6 @@ def calculate_clashscore(pdb_file):
                 break
         time.sleep(1)
 
-    if not analyze_link:
-        return None
-
     # Extract eventID from the analysis link
     analysis_href = analyze_link["href"]
     if "eventID=" in analysis_href:
@@ -91,10 +88,15 @@ def calculate_clashscore(pdb_file):
     else:
         return None
 
-    # Follow the analysis link
-    session.get(analysis_href)
+    # Follow analysis link and get new eventID from the response
+    response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}&eventID={event_id}")
+    soup = BeautifulSoup(response.text, "html.parser")
+    event_input = soup.find("input", {"name": "eventID", "type": "hidden"})
+    if not event_input:
+        return None
+    event_id = event_input["value"]
 
-    # Step 6: Run the analysis
+    # Step 6: Run the analysis with the new eventID
     file_name = Path(pdb_file).stem  # Remove .pdb extension
     analysis_data = {
         "MolProbSID": molprobsid,
