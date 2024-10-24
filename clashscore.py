@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 
 def calculate_clashscore(pdb_file):
     """Calculate clashscore using MolProbity web service."""
-    breakpoint()
     base_url = "http://molprobity.biochem.duke.edu"
     session = requests.Session()
 
