@@ -41,19 +41,20 @@ def calculate_torsion_angles(structure):
 
             residues = list(chain)
             for i, residue in enumerate(residues):
+                # Initialize variables
+                O3_prev = None
+                next_residue = None
+
                 if i > 0:
                     prev_residue = residues[i - 1]
+                    O3_prev = get_atom_coord(prev_residue, "O3'")
                 if i < len(residues) - 1:
                     next_residue = residues[i + 1]
-                else:
-                    next_residue = None
 
                 res_id = f"{chain.id}:{residue.id[1]}"
                 angles[res_id] = {}
 
                 # Get atom coordinates
-                if prev_residue:
-                    O3_prev = get_atom_coord(prev_residue, "O3'")
                 P = get_atom_coord(residue, "P")
                 O5 = get_atom_coord(residue, "O5'")
                 C5 = get_atom_coord(residue, "C5'")
