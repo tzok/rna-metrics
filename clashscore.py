@@ -89,7 +89,9 @@ def calculate_clashscore(pdb_file):
         return None
 
     # Follow analysis link and get new eventID from the response
-    response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}&eventID={event_id}")
+    response = session.get(
+        f"{base_url}/index.php?MolProbSID={molprobsid}&eventID={event_id}"
+    )
     soup = BeautifulSoup(response.text, "html.parser")
     event_input = soup.find("input", {"name": "eventID", "type": "hidden"})
     if not event_input:
