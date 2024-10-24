@@ -12,11 +12,11 @@ def prepare_usalign():
     usalign_path = shutil.which("USalign")
     if usalign_path:
         return usalign_path
-        
+
     # If not in PATH, check current directory
     if os.path.exists("USalign"):
         return "./USalign"
-        
+
     # Download and compile
     if not os.path.exists("USalign.cpp"):
         url = "https://zhanggroup.org/US-align/bin/module/USalign.cpp"
