@@ -46,7 +46,7 @@ def calculate_rmsd(structure1_str, structure2_str):
 def main(pdb_file1, pdb_file2):
     with open(pdb_file1) as f:
         with open(pdb_file2) as g:
-            print(calculate_rmsd(f.read(), g.read()))
+            print(f"{calculate_rmsd(f.read(), g.read()):.4f}")
 
 
 if __name__ == "__main__":

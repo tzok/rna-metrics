@@ -59,9 +59,9 @@ def main(pdb_file1, pdb_file2):
     mcq = calculate_mcq(angles1, angles2)
 
     if mcq is not None:
-        print(f"\nMean of Circular Quantities (MCQ): {mcq:.2f}°")
+        print(f"{mcq:.4f}")
     else:
-        print("\nNo matching angles found to calculate MCQ")
+        print("nan")
 
 
 if __name__ == "__main__":

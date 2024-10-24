@@ -71,7 +71,7 @@ def main(reference_pdb, model_pdb):
     model_structure = parser.get_structure("model", model_pdb)
 
     lddt_score = calculate_lddt(reference_structure, model_structure)
-    print(f"lDDT score: {lddt_score:.4f}")
+    print(f"{lddt_score:.4f}")
 
 
 if __name__ == "__main__":

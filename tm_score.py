@@ -1,5 +1,7 @@
+#! /usr/bin/env python
 import os
 import subprocess
+import sys
 import urllib.request
 
 
@@ -41,7 +43,7 @@ def main(pdb_file1, pdb_file2):
     """Main function to calculate TM-score between two PDB files"""
     try:
         score = calculate_tm_score(pdb_file1, pdb_file2)
-        print(f"TM-score: {score:.4f}")
+        print(f"{score:.4f}")
         return score
     except Exception as e:
         print(f"Error calculating TM-score: {e}")
@@ -49,8 +51,6 @@ def main(pdb_file1, pdb_file2):
 
 
 if __name__ == "__main__":
-    import sys
-
     if len(sys.argv) != 3:
         print("Usage: python tm_score.py <reference_pdb> <model_pdb>")
         sys.exit(1)

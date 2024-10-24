@@ -53,39 +53,33 @@ def process_structure(pdb_file):
         return extract_interactions(interactions)
 
 
-def main(pdb_file1, pdb_file2):
+def main(pdb_file1, pdb_file2, mode='all'):
     canonical1, non_canonical1, stacking1 = process_structure(pdb_file1)
     canonical2, non_canonical2, stacking2 = process_structure(pdb_file2)
-
-    print(f"Structure {pdb_file1}:")
-    print(f"  Canonical pairs: {len(canonical1)}")
-    print(f"  Non-canonical pairs: {len(non_canonical1)}")
-    print(f"  Stacking interactions: {len(stacking1)}")
-
-    print(f"\nStructure {pdb_file2}:")
-    print(f"  Canonical pairs: {len(canonical2)}")
-    print(f"  Non-canonical pairs: {len(non_canonical2)}")
-    print(f"  Stacking interactions: {len(stacking2)}")
 
     # Calculate INF scores for each interaction type
     canonical_inf = calculate_inf(canonical1, canonical2)
     non_canonical_inf = calculate_inf(non_canonical1, non_canonical2)
     stacking_inf = calculate_inf(stacking1, stacking2)
-
-    # Calculate overall INF score
     all_interactions1 = canonical1 + non_canonical1 + stacking1
     all_interactions2 = canonical2 + non_canonical2 + stacking2
     all_inf = calculate_inf(all_interactions1, all_interactions2)
 
-    print("\nINF Scores:")
-    print(f"  Canonical pairs: {canonical_inf:.3f}")
-    print(f"  Non-canonical pairs: {non_canonical_inf:.3f}")
-    print(f"  Stacking interactions: {stacking_inf:.3f}")
-    print(f"  All interactions: {all_inf:.3f}")
+    # Return score based on mode
+    if mode == 'canonical':
+        print(f"{canonical_inf:.4f}")
+    elif mode == 'non-canonical':
+        print(f"{non_canonical_inf:.4f}")
+    elif mode == 'stacking':
+        print(f"{stacking_inf:.4f}")
+    else:  # 'all' is default
+        print(f"{all_inf:.4f}")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python inf.py <reference_pdb> <model_pdb>")
+    if len(sys.argv) not in [3, 4]:
+        print("Usage: python inf.py <reference_pdb> <model_pdb> [mode]")
+        print("mode can be: canonical, non-canonical, stacking, all (default)")
         sys.exit(1)
-    main(sys.argv[1], sys.argv[2])
+    mode = sys.argv[3] if len(sys.argv) == 4 else 'all'
+    main(sys.argv[1], sys.argv[2], mode)
