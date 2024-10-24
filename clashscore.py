@@ -115,22 +115,43 @@ def calculate_clashscore(pdb_file):
     }
     session.post(f"{base_url}/index.php", data=analysis_data)
 
-    # Step 7: Wait for results and parse
+    # Step 7: Wait for results and parse, handling meta refreshes
+    event_id = None
     while True:
-        response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, "html.parser")
-            # Find the cell containing "Clashscore, all atoms:"
-            clash_cell = soup.find("td", string="Clashscore, all atoms:")
-            if clash_cell:
-                # Get the next td element which contains the value
-                value_cell = clash_cell.find_next("td")
-                if value_cell:
-                    try:
-                        return float(value_cell.text.strip())
-                    except ValueError:
-                        return None
+        url = f"{base_url}/index.php?MolProbSID={molprobsid}"
+        if event_id:
+            url += f"&eventID={event_id}"
+
+        response = session.get(url)
+        if response.status_code != 200:
+            time.sleep(1)
+            continue
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Check for meta refresh
+        meta_refresh = soup.find("meta", {"http-equiv": "refresh"})
+        if meta_refresh:
+            content = meta_refresh["content"]
+            if "; URL=" in content:
+                redirect_url = content.split("; URL=")[1]
+                # Extract eventID from redirect URL if present
+                if "eventID=" in redirect_url:
+                    event_id = redirect_url.split("eventID=")[1].split("&")[0]
+                time.sleep(1)
+                continue
+
+        # Look for clashscore results
+        clash_cell = soup.find("td", string="Clashscore, all atoms:")
+        if clash_cell:
+            value_cell = clash_cell.find_next("td")
+            if value_cell:
+                try:
+                    return float(value_cell.text.strip())
+                except ValueError:
+                    return None
             break
+
         time.sleep(1)
 
     return None
