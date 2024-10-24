@@ -53,7 +53,7 @@ def process_structure(pdb_file):
         return extract_interactions(interactions)
 
 
-def main(pdb_file1, pdb_file2, mode='all'):
+def main(pdb_file1, pdb_file2, mode="all"):
     canonical1, non_canonical1, stacking1 = process_structure(pdb_file1)
     canonical2, non_canonical2, stacking2 = process_structure(pdb_file2)
 
@@ -66,11 +66,11 @@ def main(pdb_file1, pdb_file2, mode='all'):
     all_inf = calculate_inf(all_interactions1, all_interactions2)
 
     # Return score based on mode
-    if mode == 'canonical':
+    if mode == "canonical":
         print(f"{canonical_inf:.4f}")
-    elif mode == 'non-canonical':
+    elif mode == "non-canonical":
         print(f"{non_canonical_inf:.4f}")
-    elif mode == 'stacking':
+    elif mode == "stacking":
         print(f"{stacking_inf:.4f}")
     else:  # 'all' is default
         print(f"{all_inf:.4f}")
@@ -81,5 +81,5 @@ if __name__ == "__main__":
         print("Usage: python inf.py <reference_pdb> <model_pdb> [mode]")
         print("mode can be: canonical, non-canonical, stacking, all (default)")
         sys.exit(1)
-    mode = sys.argv[3] if len(sys.argv) == 4 else 'all'
+    mode = sys.argv[3] if len(sys.argv) == 4 else "all"
     main(sys.argv[1], sys.argv[2], mode)
