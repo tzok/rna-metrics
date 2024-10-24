@@ -2,6 +2,7 @@
 import sys
 
 from rnapolis.annotator import extract_base_interactions
+from rnapolis.common import LeontisWesthof
 from rnapolis.parser import read_3d_structure
 
 
@@ -9,21 +10,25 @@ def extract_canonical_pairs(interactions):
     """Extract canonical base pairs (cWW A-U, G-C, G-U) from interactions."""
     canonical_pairs = []
     for pair in interactions.basePairs:
-        if pair.leontisWesthof == "cWW":
-            seq = f"{pair.nt1.residueName}-{pair.nt2.residueName}"
+        if pair.lw == LeontisWesthof.cWW:
+            seq = f"{pair.nt1.name}-{pair.nt2.name}"
             if seq in ["A-U", "U-A", "G-C", "C-G", "G-U", "U-G"]:
                 canonical_pairs.append(pair)
     return canonical_pairs
 
 
-def main(pdb_file1, pdb_file2):
-    structure1 = read_3d_structure(pdb_file1)
-    structure2 = read_3d_structure(pdb_file2)
-    interactions1 = extract_base_interactions(structure1)
-    interactions2 = extract_base_interactions(structure2)
+def process_structure(pdb_file):
+    """Process PDB file to extract canonical base pairs."""
+    with open(pdb_file) as f:
+        structure = read_3d_structure(f)
+        interactions = extract_base_interactions(structure)
+        canonical_pairs = extract_canonical_pairs(interactions)
+    return canonical_pairs
 
-    canonical_pairs1 = extract_canonical_pairs(interactions1)
-    canonical_pairs2 = extract_canonical_pairs(interactions2)
+
+def main(pdb_file1, pdb_file2):
+    canonical_pairs1 = process_structure(pdb_file1)
+    canonical_pairs2 = process_structure(pdb_file2)
 
     print(f"Number of canonical pairs in {pdb_file1}: {len(canonical_pairs1)}")
     print(f"Number of canonical pairs in {pdb_file2}: {len(canonical_pairs2)}")
