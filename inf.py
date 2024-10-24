@@ -10,14 +10,14 @@ def calculate_inf(interactions1, interactions2):
     """Calculate INF score between two sets of interactions."""
     set1 = set(interactions1)
     set2 = set(interactions2)
-    
+
     tp = len(set1 & set2)
     fn = len(set1 - set2)
     fp = len(set2 - set1)
-    
+
     if tp == 0:
         return 0.0
-    
+
     return (tp / (tp + fn) * tp / (tp + fp)) ** 0.5
 
 
