@@ -38,7 +38,7 @@ def calculate_clashscore(pdb_file):
         url = f"{base_url}/index.php?MolProbSID={molprobsid}"
         if event_id:
             url += f"&eventID={event_id}"
-        
+
         response = session.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
 
