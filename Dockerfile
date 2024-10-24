@@ -4,7 +4,15 @@ FROM python:3.12-slim
 # Install build dependencies for USalign
 RUN apt-get update && apt-get install -y \
     g++ \
+    wget \
     && rm -rf /var/lib/apt/lists/*
+
+# Download and compile USalign
+WORKDIR /tmp
+RUN wget https://zhanggroup.org/US-align/bin/module/USalign.cpp && \
+    g++ -static -O3 -ffast-math -o USalign USalign.cpp && \
+    mv USalign /usr/local/bin/ && \
+    rm USalign.cpp
 
 # Set the working directory in the container
 WORKDIR /app
