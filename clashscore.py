@@ -17,12 +17,9 @@ def calculate_clashscore(pdb_file):
     response = session.get(f"{base_url}/")
     soup = BeautifulSoup(response.text, "html.parser")
     molprobsid = soup.find("input", {"name": "MolProbSID"})["value"]
-
-    # Step 2: Upload the file
-    response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
-    soup = BeautifulSoup(response.text, "html.parser")
     upload_event_id = soup.find("input", {"name": "eventID"})["value"]
 
+    # Step 2: Upload the file
     with open(pdb_file, "rb") as f:
         upload_data = {
             "MolProbSID": molprobsid,
@@ -36,8 +33,13 @@ def calculate_clashscore(pdb_file):
         response = session.post(f"{base_url}/index.php", data=upload_data, files=files)
 
     # Step 3: Wait for processing and follow meta refreshes
+    event_id = None
     while True:
-        response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
+        url = f"{base_url}/index.php?MolProbSID={molprobsid}"
+        if event_id:
+            url += f"&eventID={event_id}"
+        
+        response = session.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
 
         # Check for meta refresh
@@ -46,6 +48,9 @@ def calculate_clashscore(pdb_file):
             content = meta_refresh["content"]
             if "; URL=" in content:
                 redirect_url = content.split("; URL=")[1]
+                # Extract eventID from redirect URL if present
+                if "eventID=" in redirect_url:
+                    event_id = redirect_url.split("eventID=")[1].split("&")[0]
                 response = session.get(redirect_url)
                 continue
 
