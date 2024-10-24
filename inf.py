@@ -6,6 +6,21 @@ from rnapolis.common import LeontisWesthof
 from rnapolis.parser import read_3d_structure
 
 
+def calculate_inf(interactions1, interactions2):
+    """Calculate INF score between two sets of interactions."""
+    set1 = set(interactions1)
+    set2 = set(interactions2)
+    
+    tp = len(set1 & set2)
+    fn = len(set1 - set2)
+    fp = len(set2 - set1)
+    
+    if tp == 0:
+        return 0.0
+    
+    return (tp / (tp + fn) * tp / (tp + fp)) ** 0.5
+
+
 def extract_interactions(interactions):
     """Extract different types of base interactions."""
     canonical_pairs = []
@@ -17,15 +32,15 @@ def extract_interactions(interactions):
         if pair.lw == LeontisWesthof.cWW:
             seq = f"{pair.nt1.name}-{pair.nt2.name}"
             if seq in ["A-U", "U-A", "G-C", "C-G", "G-U", "U-G"]:
-                canonical_pairs.append((pair.nt1, pair.nt2))
+                canonical_pairs.append((pair.nt1, pair.nt2, None))
             else:
                 non_canonical_pairs.append((pair.nt1, pair.nt2, pair.lw))
         else:
             non_canonical_pairs.append((pair.nt1, pair.nt2, pair.lw))
 
     # Process stacking interactions
-    for stack in interactions.stacking:
-        stacking_pairs.append((stack.nt1, stack.nt2))
+    for stack in interactions.stackings:
+        stacking_pairs.append((stack.nt1, stack.nt2, None))
 
     return canonical_pairs, non_canonical_pairs, stacking_pairs
 
@@ -51,6 +66,16 @@ def main(pdb_file1, pdb_file2):
     print(f"  Canonical pairs: {len(canonical2)}")
     print(f"  Non-canonical pairs: {len(non_canonical2)}")
     print(f"  Stacking interactions: {len(stacking2)}")
+
+    # Calculate INF scores for each interaction type
+    canonical_inf = calculate_inf(canonical1, canonical2)
+    non_canonical_inf = calculate_inf(non_canonical1, non_canonical2)
+    stacking_inf = calculate_inf(stacking1, stacking2)
+
+    print("\nINF Scores:")
+    print(f"  Canonical pairs: {canonical_inf:.3f}")
+    print(f"  Non-canonical pairs: {non_canonical_inf:.3f}")
+    print(f"  Stacking interactions: {stacking_inf:.3f}")
 
 
 if __name__ == "__main__":
