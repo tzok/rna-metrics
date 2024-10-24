@@ -1,7 +1,13 @@
+#! /usr/bin/env python
 import sys
-import requests
+import urllib3
+
+# Suppress InsecureRequestWarning
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import time
 from pathlib import Path
+
+import requests
 
 
 def calculate_clashscore(pdb_file):
@@ -15,7 +21,7 @@ def calculate_clashscore(pdb_file):
         files = {"file": (Path(pdb_file).name, f)}
 
         # Upload the structure
-        response = requests.post(upload_url, files=files)
+        response = requests.post(upload_url, files=files, verify=False)
         if not response.ok:
             return None
 
@@ -33,7 +39,7 @@ def calculate_clashscore(pdb_file):
         # Send request and wait for results
         max_attempts = 10
         for _ in range(max_attempts):
-            response = requests.get(results_url, params=params, cookies=cookies)
+            response = requests.get(results_url, params=params, cookies=cookies, verify=False)
             if response.ok and "clashscore =" in response.text:
                 # Extract clashscore from response
                 for line in response.text.split("\n"):
