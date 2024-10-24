@@ -1,6 +1,8 @@
+#! /usr/bin/env python
 import numpy as np
-from torsion import calculate_torsion_angles
 from Bio import PDB
+
+from torsion import calculate_torsion_angles
 
 
 def calculate_mcq(angles1, angles2):
@@ -21,11 +23,12 @@ def calculate_mcq(angles1, angles2):
         if res_id in angles2:
             for angle_name in angles1[res_id]:
                 if angle_name in angles2[res_id]:
-                    # Convert to radians and calculate difference
+                    # Convert to radians and calculate minimum difference
                     angle1 = np.radians(angles1[res_id][angle_name])
                     angle2 = np.radians(angles2[res_id][angle_name])
-                    diff = angle1 - angle2
-                    differences.append(diff)
+                    abs_diff = abs(angle1 - angle2)
+                    min_diff = min(abs_diff, 2 * np.pi - abs_diff)
+                    differences.append(min_diff)
 
     if not differences:
         return None
