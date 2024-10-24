@@ -11,42 +11,39 @@ def calculate_clashscore(pdb_file):
     results_url = "https://molprobity.biochem.duke.edu/molprobity/cmd"
 
     # Read PDB file
-    with open(pdb_file, 'rb') as f:
-        files = {'file': (Path(pdb_file).name, f)}
-        
+    with open(pdb_file, "rb") as f:
+        files = {"file": (Path(pdb_file).name, f)}
+
         # Upload the structure
         response = requests.post(upload_url, files=files)
         if not response.ok:
             return None
 
         # Get the session ID from response
-        session_id = response.cookies.get('JSESSIONID')
+        session_id = response.cookies.get("JSESSIONID")
         if not session_id:
             return None
 
         # Prepare cookies for next request
-        cookies = {'JSESSIONID': session_id}
+        cookies = {"JSESSIONID": session_id}
 
         # Request clashscore calculation
-        params = {
-            'command': 'clashscore',
-            'input': Path(pdb_file).name
-        }
-        
+        params = {"command": "clashscore", "input": Path(pdb_file).name}
+
         # Send request and wait for results
         max_attempts = 10
         for _ in range(max_attempts):
             response = requests.get(results_url, params=params, cookies=cookies)
-            if response.ok and 'clashscore =' in response.text:
+            if response.ok and "clashscore =" in response.text:
                 # Extract clashscore from response
-                for line in response.text.split('\n'):
-                    if 'clashscore =' in line:
+                for line in response.text.split("\n"):
+                    if "clashscore =" in line:
                         try:
-                            return float(line.split('=')[1].strip())
+                            return float(line.split("=")[1].strip())
                         except (IndexError, ValueError):
                             return None
             time.sleep(1)  # Wait before retrying
-            
+
         return None
 
 
