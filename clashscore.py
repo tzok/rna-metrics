@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 
 def calculate_clashscore(pdb_file):
     """Calculate clashscore using MolProbity web service."""
+    breakpoint()
     base_url = "http://molprobity.biochem.duke.edu"
     session = requests.Session()
 
@@ -18,11 +19,15 @@ def calculate_clashscore(pdb_file):
     molprobsid = soup.find("input", {"name": "MolProbSID"})["value"]
 
     # Step 2: Upload the file
+    response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
+    soup = BeautifulSoup(response.text, "html.parser")
+    upload_event_id = soup.find("input", {"name": "eventID"})["value"]
+    
     with open(pdb_file, "rb") as f:
         upload_data = {
             "MolProbSID": molprobsid,
             "cmd": "Upload >",
-            "eventID": "14",
+            "eventID": upload_event_id,
             "fetchType": "pdb",
             "pdbCode": "",
             "uploadType": "pdb",
@@ -30,15 +35,31 @@ def calculate_clashscore(pdb_file):
         files = {"uploadFile": (Path(pdb_file).name, f)}
         response = session.post(f"{base_url}/index.php", data=upload_data, files=files)
 
-    # Step 3: Wait for processing
+    # Step 3: Wait for processing and follow meta refreshes
     while True:
         response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
-        if response.status_code == 200:
-            break
-        time.sleep(1)
-
-    # Step 4: Continue to next step
-    continue_data = {"MolProbSID": molprobsid, "cmd": "Continue >", "eventID": "24"}
+        soup = BeautifulSoup(response.text, "html.parser")
+        
+        # Check for meta refresh
+        meta_refresh = soup.find("meta", {"http-equiv": "refresh"})
+        if meta_refresh:
+            content = meta_refresh["content"]
+            if "; URL=" in content:
+                redirect_url = content.split("; URL=")[1]
+                response = session.get(redirect_url)
+                continue
+        
+        # Check for Continue button
+        continue_button = soup.find("input", {"type": "submit", "value": "Continue >"})
+        if continue_button:
+            form = continue_button.find_parent("form")
+            if form:
+                event_id = form.find("input", {"name": "eventID"})["value"]
+                continue_data = {
+                    "MolProbSID": molprobsid,
+                    "cmd": "Continue >",
+                    "eventID": event_id
+                }
     session.post(f"{base_url}/index.php", data=continue_data)
 
     # Step 5: Wait and get the analysis link
