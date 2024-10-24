@@ -1,14 +1,32 @@
 # Use an official Python runtime as a parent image
 FROM python:3.12-slim
 
+# Install build dependencies for USalign
+RUN apt-get update && apt-get install -y \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir numpy biopython
+# Copy all Python scripts and other files
+COPY clashscore.py /app/
+COPY inf.py /app/
+COPY lddt.py /app/
+COPY mcq.py /app/
+COPY rmsd.py /app/
+COPY tm_score.py /app/
+COPY torsion.py /app/
 
-# Run rmsd.py when the container launches
-CMD ["python", "rmsd.py"]
+# Make all scripts executable
+RUN chmod +x /app/*.py
+
+# Set environment variable for scripts location
+ENV PATH="/app:${PATH}"
+
+# Default command (can be overridden)
+CMD ["python", "-c", "import sys; print('Available scripts: clashscore.py, inf.py, lddt.py, mcq.py, rmsd.py, tm_score.py, torsion.py')"]
