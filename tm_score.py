@@ -1,29 +1,41 @@
 #! /usr/bin/env python
 import os
+import shutil
 import subprocess
 import sys
 import urllib.request
 
 
 def prepare_usalign():
-    """Download and compile USalign if not present"""
+    """Find USalign in PATH or download and compile if not present"""
+    # First check if USalign is in PATH
+    usalign_path = shutil.which("USalign")
+    if usalign_path:
+        return usalign_path
+        
+    # If not in PATH, check current directory
+    if os.path.exists("USalign"):
+        return "./USalign"
+        
+    # Download and compile
     if not os.path.exists("USalign.cpp"):
         url = "https://zhanggroup.org/US-align/bin/module/USalign.cpp"
         urllib.request.urlretrieve(url, "USalign.cpp")
 
-    if not os.path.exists("USalign"):
-        subprocess.run(
-            ["g++", "-static", "-O3", "-ffast-math", "-o", "USalign", "USalign.cpp"],
-            check=True,
-        )
+    subprocess.run(
+        ["g++", "-static", "-O3", "-ffast-math", "-o", "USalign", "USalign.cpp"],
+        check=True,
+    )
+    return "./USalign"
 
 
 def calculate_tm_score(structure1_path, structure2_path):
     """Calculate TM-score between two structures using USalign"""
     prepare_usalign()
 
+    usalign_path = prepare_usalign()
     result = subprocess.run(
-        ["./USalign", structure1_path, structure2_path, "-outfmt", "2"],
+        [usalign_path, structure1_path, structure2_path, "-outfmt", "2"],
         capture_output=True,
         text=True,
         check=True,
