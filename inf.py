@@ -46,7 +46,7 @@ def main(pdb_file1, pdb_file2):
     print(f"  Canonical pairs: {len(canonical1)}")
     print(f"  Non-canonical pairs: {len(non_canonical1)}")
     print(f"  Stacking interactions: {len(stacking1)}")
-    
+
     print(f"\nStructure {pdb_file2}:")
     print(f"  Canonical pairs: {len(canonical2)}")
     print(f"  Non-canonical pairs: {len(non_canonical2)}")
