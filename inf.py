@@ -72,10 +72,16 @@ def main(pdb_file1, pdb_file2):
     non_canonical_inf = calculate_inf(non_canonical1, non_canonical2)
     stacking_inf = calculate_inf(stacking1, stacking2)
 
+    # Calculate overall INF score
+    all_interactions1 = canonical1 + non_canonical1 + stacking1
+    all_interactions2 = canonical2 + non_canonical2 + stacking2
+    all_inf = calculate_inf(all_interactions1, all_interactions2)
+
     print("\nINF Scores:")
     print(f"  Canonical pairs: {canonical_inf:.3f}")
     print(f"  Non-canonical pairs: {non_canonical_inf:.3f}")
     print(f"  Stacking interactions: {stacking_inf:.3f}")
+    print(f"  All interactions: {all_inf:.3f}")
 
 
 if __name__ == "__main__":
