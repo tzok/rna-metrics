@@ -22,7 +22,7 @@ def calculate_clashscore(pdb_file):
     response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
     soup = BeautifulSoup(response.text, "html.parser")
     upload_event_id = soup.find("input", {"name": "eventID"})["value"]
-    
+
     with open(pdb_file, "rb") as f:
         upload_data = {
             "MolProbSID": molprobsid,
@@ -39,7 +39,7 @@ def calculate_clashscore(pdb_file):
     while True:
         response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
         soup = BeautifulSoup(response.text, "html.parser")
-        
+
         # Check for meta refresh
         meta_refresh = soup.find("meta", {"http-equiv": "refresh"})
         if meta_refresh:
@@ -48,7 +48,7 @@ def calculate_clashscore(pdb_file):
                 redirect_url = content.split("; URL=")[1]
                 response = session.get(redirect_url)
                 continue
-        
+
         # Check for Continue button
         continue_button = soup.find("input", {"type": "submit", "value": "Continue >"})
         if continue_button:
@@ -58,7 +58,7 @@ def calculate_clashscore(pdb_file):
                 continue_data = {
                     "MolProbSID": molprobsid,
                     "cmd": "Continue >",
-                    "eventID": event_id
+                    "eventID": event_id,
                 }
     session.post(f"{base_url}/index.php", data=continue_data)
 
