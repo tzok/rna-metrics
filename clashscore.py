@@ -39,7 +39,9 @@ def calculate_clashscore(pdb_file):
         # Send request and wait for results
         max_attempts = 10
         for _ in range(max_attempts):
-            response = requests.get(results_url, params=params, cookies=cookies, verify=False)
+            response = requests.get(
+                results_url, params=params, cookies=cookies, verify=False
+            )
             if response.ok and "clashscore =" in response.text:
                 # Extract clashscore from response
                 for line in response.text.split("\n"):
