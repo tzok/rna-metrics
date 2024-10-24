@@ -1,59 +1,103 @@
 #! /usr/bin/env python
 import sys
-import urllib3
-
-# Suppress InsecureRequestWarning
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import time
 from pathlib import Path
 
 import requests
+from bs4 import BeautifulSoup
 
 
 def calculate_clashscore(pdb_file):
     """Calculate clashscore using MolProbity web service."""
-    # MolProbity upload URL
-    base_url = "https://molprobity.biochem.duke.edu"
-    upload_url = f"{base_url}/molprobity/upload"
-    results_url = f"{base_url}/molprobity/cmd"
+    base_url = "http://molprobity.biochem.duke.edu"
+    session = requests.Session()
 
-    # Read PDB file
+    # Step 1: Get the initial page and extract MolProbSID
+    response = session.get(f"{base_url}/")
+    soup = BeautifulSoup(response.text, 'html.parser')
+    molprobsid = soup.find('input', {'name': 'MolProbSID'})['value']
+
+    # Step 2: Upload the file
     with open(pdb_file, "rb") as f:
-        files = {"file": (Path(pdb_file).name, f)}
+        upload_data = {
+            'MolProbSID': molprobsid,
+            'cmd': 'Upload >',
+            'eventID': '14',
+            'fetchType': 'pdb',
+            'pdbCode': '',
+            'uploadType': 'pdb'
+        }
+        files = {
+            'uploadFile': (Path(pdb_file).name, f)
+        }
+        response = session.post(f"{base_url}/index.php", data=upload_data, files=files)
 
-        # Upload the structure
-        response = requests.post(upload_url, files=files, verify=False)
-        if not response.ok:
-            return None
+    # Step 3: Wait for processing
+    while True:
+        response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
+        if response.status_code == 200:
+            break
+        time.sleep(1)
 
-        # Get the session ID from response
-        session_id = response.cookies.get("JSESSIONID")
-        if not session_id:
-            return None
+    # Step 4: Continue to next step
+    continue_data = {
+        'MolProbSID': molprobsid,
+        'cmd': 'Continue >',
+        'eventID': '24'
+    }
+    session.post(f"{base_url}/index.php", data=continue_data)
 
-        # Prepare cookies for next request
-        cookies = {"JSESSIONID": session_id}
+    # Step 5: Wait and get the analysis link
+    while True:
+        response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
+        if response.status_code == 200:
+            break
+        time.sleep(1)
 
-        # Request clashscore calculation
-        params = {"command": "clashscore", "input": Path(pdb_file).name}
-
-        # Send request and wait for results
-        max_attempts = 10
-        for _ in range(max_attempts):
-            response = requests.get(
-                results_url, params=params, cookies=cookies, verify=False
-            )
-            if response.ok and "clashscore =" in response.text:
-                # Extract clashscore from response
-                for line in response.text.split("\n"):
-                    if "clashscore =" in line:
-                        try:
-                            return float(line.split("=")[1].strip())
-                        except (IndexError, ValueError):
-                            return None
-            time.sleep(1)  # Wait before retrying
-
+    # Find and follow "Analyze geometry without all-atom contacts" link
+    soup = BeautifulSoup(response.text, 'html.parser')
+    analyze_link = soup.find('a', string='Analyze geometry without all-atom contacts')
+    if not analyze_link:
         return None
+    
+    session.get(analyze_link['href'])
+
+    # Step 6: Run the analysis
+    file_name = Path(pdb_file).stem  # Remove .pdb extension
+    analysis_data = {
+        'MolProbSID': molprobsid,
+        'chartAltloc': '1',
+        'chartClashlist': '1',
+        'chartNotJustOut': '1',
+        'cmd': 'Run programs to perform these analyses >',
+        'doCharts': '1',
+        'eventID': '61',
+        'kinBaseP': '1',
+        'kinGeom': '1',
+        'kinSuite': '1',
+        'modelID': file_name
+    }
+    session.post(f"{base_url}/index.php", data=analysis_data)
+
+    # Step 7: Wait for results and parse
+    while True:
+        response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            # Find the cell containing "Clashscore, all atoms:"
+            clash_cell = soup.find('td', string='Clashscore, all atoms:')
+            if clash_cell:
+                # Get the next td element which contains the value
+                value_cell = clash_cell.find_next('td')
+                if value_cell:
+                    try:
+                        return float(value_cell.text.strip())
+                    except ValueError:
+                        return None
+            break
+        time.sleep(1)
+
+    return None
 
 
 def main(pdb_file):
