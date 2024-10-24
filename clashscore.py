@@ -13,8 +13,9 @@ import requests
 def calculate_clashscore(pdb_file):
     """Calculate clashscore using MolProbity web service."""
     # MolProbity upload URL
-    upload_url = "https://molprobity.biochem.duke.edu/molprobity/upload"
-    results_url = "https://molprobity.biochem.duke.edu/molprobity/cmd"
+    base_url = "https://molprobity.biochem.duke.edu"
+    upload_url = f"{base_url}/molprobity/upload"
+    results_url = f"{base_url}/molprobity/cmd"
 
     # Read PDB file
     with open(pdb_file, "rb") as f:
