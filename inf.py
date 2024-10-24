@@ -21,10 +21,10 @@ def main(pdb_file1, pdb_file2):
     structure2 = read_3d_structure(pdb_file2)
     interactions1 = extract_base_interactions(structure1)
     interactions2 = extract_base_interactions(structure2)
-    
+
     canonical_pairs1 = extract_canonical_pairs(interactions1)
     canonical_pairs2 = extract_canonical_pairs(interactions2)
-    
+
     print(f"Number of canonical pairs in {pdb_file1}: {len(canonical_pairs1)}")
     print(f"Number of canonical pairs in {pdb_file2}: {len(canonical_pairs2)}")
 
