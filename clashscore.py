@@ -74,7 +74,9 @@ def calculate_clashscore(pdb_file):
         response = session.get(f"{base_url}/index.php?MolProbSID={molprobsid}")
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, "html.parser")
-            analyze_link = soup.find("a", string="Analyze geometry without all-atom contacts")
+            analyze_link = soup.find(
+                "a", string="Analyze geometry without all-atom contacts"
+            )
             if analyze_link:
                 break
         time.sleep(1)
