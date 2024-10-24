@@ -47,10 +47,13 @@ def calculate_clashscore(pdb_file):
         if meta_refresh:
             content = meta_refresh["content"]
             if "; URL=" in content:
+                # Extract delay and URL from content (format: "delay; URL=...")
+                delay = int(content.split(";")[0].strip())
                 redirect_url = content.split("; URL=")[1]
                 # Extract eventID from redirect URL if present
                 if "eventID=" in redirect_url:
                     event_id = redirect_url.split("eventID=")[1].split("&")[0]
+                time.sleep(delay)
                 continue
 
         # Check for Continue button
@@ -134,11 +137,13 @@ def calculate_clashscore(pdb_file):
         if meta_refresh:
             content = meta_refresh["content"]
             if "; URL=" in content:
+                # Extract delay and URL from content (format: "delay; URL=...")
+                delay = int(content.split(";")[0].strip())
                 redirect_url = content.split("; URL=")[1]
                 # Extract eventID from redirect URL if present
                 if "eventID=" in redirect_url:
                     event_id = redirect_url.split("eventID=")[1].split("&")[0]
-                time.sleep(1)
+                time.sleep(delay)
                 continue
 
         # Look for clashscore results
