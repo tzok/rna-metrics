@@ -1,19 +1,12 @@
 #! /usr/bin/env python
 import sys
+import tempfile
+import os
+import shutil
+import subprocess
 
 import numpy as np
 from Bio.PDB import PDBParser
-
-
-def extract_phosphorus_atoms(structure):
-    atoms = []
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                for atom in residue:
-                    if atom.get_name() == "P":
-                        atoms.append(atom)
-    return atoms
 
 
 def calculate_lddt(reference_structure, model_structure):
@@ -66,12 +59,38 @@ def calculate_lddt(reference_structure, model_structure):
 
 
 def main(reference_pdb, model_pdb):
-    parser = PDBParser()
-    reference_structure = parser.get_structure("reference", reference_pdb)
-    model_structure = parser.get_structure("model", model_pdb)
+    # Create temporary directory for unified structures
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Run unifier to unify the input PDB files
+        unifier_script = os.path.join(os.path.dirname(__file__), "../../home/tzok/Sync/code/python/rnapolis-py/src/rnapolis/unifier.py")
+        
+        try:
+            subprocess.run([
+                sys.executable, unifier_script,
+                "--output", temp_dir,
+                "--format", "keep",
+                reference_pdb, model_pdb
+            ], check=True, capture_output=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error running unifier: {e}", file=sys.stderr)
+            sys.exit(1)
+        
+        # Get the unified file paths
+        ref_base = os.path.splitext(os.path.basename(reference_pdb))[0]
+        model_base = os.path.splitext(os.path.basename(model_pdb))[0]
+        ref_ext = os.path.splitext(reference_pdb)[1]
+        model_ext = os.path.splitext(model_pdb)[1]
+        
+        unified_ref = os.path.join(temp_dir, f"{ref_base}{ref_ext}")
+        unified_model = os.path.join(temp_dir, f"{model_base}{model_ext}")
+        
+        # Parse the unified structures
+        parser = PDBParser()
+        reference_structure = parser.get_structure("reference", unified_ref)
+        model_structure = parser.get_structure("model", unified_model)
 
-    lddt_score = calculate_lddt(reference_structure, model_structure)
-    print(f"{lddt_score:.4f}")
+        lddt_score = calculate_lddt(reference_structure, model_structure)
+        print(f"{lddt_score:.4f}")
 
 
 if __name__ == "__main__":
