@@ -13,13 +13,13 @@ from rnapolis.unifier import main as unifier_main
 def unify_structures(reference_pdb, model_pdb):
     """
     Unify two PDB structures using the rnapolis unifier.
-    
+
     :param reference_pdb: Path to reference PDB file
     :param model_pdb: Path to model PDB file
     :return: Tuple of (unified_ref_path, unified_model_path, temp_dir)
     """
     temp_dir = tempfile.mkdtemp()
-    
+
     # Save original sys.argv and replace it for unifier
     original_argv = sys.argv
     sys.argv = [
@@ -49,7 +49,7 @@ def unify_structures(reference_pdb, model_pdb):
 
     unified_ref = os.path.join(temp_dir, f"{ref_base}{ref_ext}")
     unified_model = os.path.join(temp_dir, f"{model_base}{model_ext}")
-    
+
     return unified_ref, unified_model, temp_dir
 
 
@@ -105,7 +105,7 @@ def calculate_lddt(reference_structure, model_structure):
 def main(reference_pdb, model_pdb):
     # Unify structures
     unified_ref, unified_model, temp_dir = unify_structures(reference_pdb, model_pdb)
-    
+
     try:
         # Parse the unified structures
         parser = PDBParser()

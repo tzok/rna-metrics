@@ -19,7 +19,7 @@ class TestLDDT:
         """Test lDDT calculation between two structures using unified structures."""
         # Unify structures
         unified_ref, unified_model, temp_dir = unify_structures(self.pdb1, self.pdb2)
-        
+
         try:
             # Parse the unified structures
             parser = PDBParser()
