@@ -10,16 +10,16 @@ class TestMCQ:
         """Set up test fixtures with paths to test PDB files."""
         self.pdb1 = "tests/1ehz.pdb"
         self.pdb2 = "tests/1evv.pdb"
-        
+
         # Verify test files exist
         assert os.path.exists(self.pdb1), f"Test file {self.pdb1} not found"
         assert os.path.exists(self.pdb2), f"Test file {self.pdb2} not found"
-        
+
         # Load structures and calculate torsion angles
         parser = PDB.PDBParser(QUIET=True)
         structure1 = parser.get_structure("struct1", self.pdb1)
         structure2 = parser.get_structure("struct2", self.pdb2)
-        
+
         self.angles1 = calculate_torsion_angles(structure1)
         self.angles2 = calculate_torsion_angles(structure2)
 
