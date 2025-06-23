@@ -73,7 +73,7 @@ def main(reference_pdb, model_pdb):
             reference_pdb,
             model_pdb,
         ]
-        
+
         try:
             unifier_main()
         except SystemExit:
