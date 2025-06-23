@@ -1,0 +1,26 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  docker-tests:
+    name: Docker Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build Docker image
+      run: docker build -t rna-metrics .
+
+    - name: Run tests in container
+      run: |
+        docker run --rm rna-metrics bash -c "
+          pip install -r test_requirements.txt &&
+          pytest -v
+        "

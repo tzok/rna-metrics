@@ -38,3 +38,7 @@ ENV PATH="/app:${PATH}"
 
 # Default command (can be overridden)
 CMD ["python", "-c", "import sys; print('Available scripts: clashscore.py, inf.py, lddt.py, mcq.py, rmsd.py, tm_score.py, torsion.py')"]
+
+COPY pytest.ini /app
+COPY test_requirements.txt /app
+COPY tests /app/tests
