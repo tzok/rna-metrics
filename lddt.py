@@ -7,6 +7,7 @@ import subprocess
 
 import numpy as np
 from Bio.PDB import PDBParser
+from rnapolis.unifier import main as unifier_main
 
 
 def calculate_lddt(reference_structure, model_structure):
@@ -61,30 +62,26 @@ def calculate_lddt(reference_structure, model_structure):
 def main(reference_pdb, model_pdb):
     # Create temporary directory for unified structures
     with tempfile.TemporaryDirectory() as temp_dir:
-        # Run unifier to unify the input PDB files
-        unifier_script = os.path.join(
-            os.path.dirname(__file__),
-            "../../home/tzok/Sync/code/python/rnapolis-py/src/rnapolis/unifier.py",
-        )
-
+        # Save original sys.argv and replace it for unifier
+        original_argv = sys.argv
+        sys.argv = [
+            "unifier",
+            "--output",
+            temp_dir,
+            "--format",
+            "keep",
+            reference_pdb,
+            model_pdb,
+        ]
+        
         try:
-            subprocess.run(
-                [
-                    sys.executable,
-                    unifier_script,
-                    "--output",
-                    temp_dir,
-                    "--format",
-                    "keep",
-                    reference_pdb,
-                    model_pdb,
-                ],
-                check=True,
-                capture_output=True,
-            )
-        except subprocess.CalledProcessError as e:
-            print(f"Error running unifier: {e}", file=sys.stderr)
-            sys.exit(1)
+            unifier_main()
+        except SystemExit:
+            # unifier_main() calls sys.exit(), catch it to continue
+            pass
+        finally:
+            # Restore original sys.argv
+            sys.argv = original_argv
 
         # Get the unified file paths
         ref_base = os.path.splitext(os.path.basename(reference_pdb))[0]
