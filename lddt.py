@@ -10,6 +10,49 @@ from Bio.PDB import PDBParser
 from rnapolis.unifier import main as unifier_main
 
 
+def unify_structures(reference_pdb, model_pdb):
+    """
+    Unify two PDB structures using the rnapolis unifier.
+    
+    :param reference_pdb: Path to reference PDB file
+    :param model_pdb: Path to model PDB file
+    :return: Tuple of (unified_ref_path, unified_model_path, temp_dir)
+    """
+    temp_dir = tempfile.mkdtemp()
+    
+    # Save original sys.argv and replace it for unifier
+    original_argv = sys.argv
+    sys.argv = [
+        "unifier",
+        "--output",
+        temp_dir,
+        "--format",
+        "keep",
+        reference_pdb,
+        model_pdb,
+    ]
+
+    try:
+        unifier_main()
+    except SystemExit:
+        # unifier_main() calls sys.exit(), catch it to continue
+        pass
+    finally:
+        # Restore original sys.argv
+        sys.argv = original_argv
+
+    # Get the unified file paths
+    ref_base = os.path.splitext(os.path.basename(reference_pdb))[0]
+    model_base = os.path.splitext(os.path.basename(model_pdb))[0]
+    ref_ext = os.path.splitext(reference_pdb)[1]
+    model_ext = os.path.splitext(model_pdb)[1]
+
+    unified_ref = os.path.join(temp_dir, f"{ref_base}{ref_ext}")
+    unified_model = os.path.join(temp_dir, f"{model_base}{model_ext}")
+    
+    return unified_ref, unified_model, temp_dir
+
+
 def calculate_lddt(reference_structure, model_structure):
     """
     Calculate the local Distance Difference Test (lDDT) score.
@@ -60,38 +103,10 @@ def calculate_lddt(reference_structure, model_structure):
 
 
 def main(reference_pdb, model_pdb):
-    # Create temporary directory for unified structures
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Save original sys.argv and replace it for unifier
-        original_argv = sys.argv
-        sys.argv = [
-            "unifier",
-            "--output",
-            temp_dir,
-            "--format",
-            "keep",
-            reference_pdb,
-            model_pdb,
-        ]
-
-        try:
-            unifier_main()
-        except SystemExit:
-            # unifier_main() calls sys.exit(), catch it to continue
-            pass
-        finally:
-            # Restore original sys.argv
-            sys.argv = original_argv
-
-        # Get the unified file paths
-        ref_base = os.path.splitext(os.path.basename(reference_pdb))[0]
-        model_base = os.path.splitext(os.path.basename(model_pdb))[0]
-        ref_ext = os.path.splitext(reference_pdb)[1]
-        model_ext = os.path.splitext(model_pdb)[1]
-
-        unified_ref = os.path.join(temp_dir, f"{ref_base}{ref_ext}")
-        unified_model = os.path.join(temp_dir, f"{model_base}{model_ext}")
-
+    # Unify structures
+    unified_ref, unified_model, temp_dir = unify_structures(reference_pdb, model_pdb)
+    
+    try:
         # Parse the unified structures
         parser = PDBParser()
         reference_structure = parser.get_structure("reference", unified_ref)
@@ -99,6 +114,9 @@ def main(reference_pdb, model_pdb):
 
         lddt_score = calculate_lddt(reference_structure, model_structure)
         print(f"{lddt_score:.4f}")
+    finally:
+        # Clean up temporary directory
+        shutil.rmtree(temp_dir)
 
 
 if __name__ == "__main__":
