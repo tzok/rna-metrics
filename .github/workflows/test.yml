@@ -1,4 +1,4 @@
-name: Test
+name: Tests
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [ main, master ]
 
 jobs:
-  test:
+  docker-tests:
+    name: Docker Tests
     runs-on: ubuntu-latest
     
     steps:
