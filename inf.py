@@ -28,7 +28,7 @@ def extract_interactions(interactions):
     stacking_pairs = []
 
     # Process base pairs
-    for pair in interactions.basePairs:
+    for pair in interactions.base_pairs:
         if pair.lw == LeontisWesthof.cWW:
             seq = f"{pair.nt1.name}-{pair.nt2.name}"
             if seq in ["A-U", "U-A", "G-C", "C-G", "G-U", "U-G"]:
