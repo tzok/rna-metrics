@@ -62,28 +62,39 @@ def main(reference_pdb, model_pdb):
     # Create temporary directory for unified structures
     with tempfile.TemporaryDirectory() as temp_dir:
         # Run unifier to unify the input PDB files
-        unifier_script = os.path.join(os.path.dirname(__file__), "../../home/tzok/Sync/code/python/rnapolis-py/src/rnapolis/unifier.py")
-        
+        unifier_script = os.path.join(
+            os.path.dirname(__file__),
+            "../../home/tzok/Sync/code/python/rnapolis-py/src/rnapolis/unifier.py",
+        )
+
         try:
-            subprocess.run([
-                sys.executable, unifier_script,
-                "--output", temp_dir,
-                "--format", "keep",
-                reference_pdb, model_pdb
-            ], check=True, capture_output=True)
+            subprocess.run(
+                [
+                    sys.executable,
+                    unifier_script,
+                    "--output",
+                    temp_dir,
+                    "--format",
+                    "keep",
+                    reference_pdb,
+                    model_pdb,
+                ],
+                check=True,
+                capture_output=True,
+            )
         except subprocess.CalledProcessError as e:
             print(f"Error running unifier: {e}", file=sys.stderr)
             sys.exit(1)
-        
+
         # Get the unified file paths
         ref_base = os.path.splitext(os.path.basename(reference_pdb))[0]
         model_base = os.path.splitext(os.path.basename(model_pdb))[0]
         ref_ext = os.path.splitext(reference_pdb)[1]
         model_ext = os.path.splitext(model_pdb)[1]
-        
+
         unified_ref = os.path.join(temp_dir, f"{ref_base}{ref_ext}")
         unified_model = os.path.join(temp_dir, f"{model_base}{model_ext}")
-        
+
         # Parse the unified structures
         parser = PDBParser()
         reference_structure = parser.get_structure("reference", unified_ref)
