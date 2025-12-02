@@ -1,5 +1,5 @@
 numpy==2.3.1
-biopython==1.85
+biopython==1.86
 beautifulsoup4==4.13.4
 requests==2.32.4
 rnapolis==0.9.1
