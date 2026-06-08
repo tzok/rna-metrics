@@ -2,4 +2,4 @@ numpy==2.4.6
 biopython==1.87
 beautifulsoup4==4.15.0
 requests==2.34.2
-rnapolis==0.16.6
+rnapolis==0.16.7
