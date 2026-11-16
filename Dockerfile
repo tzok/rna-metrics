@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 # Install build dependencies for USalign
 RUN apt-get update && apt-get install -y \
